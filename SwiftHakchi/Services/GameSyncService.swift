@@ -306,6 +306,7 @@ actor GameSyncService {
             desktop.exec = romConsolePath
         }
 
+        desktop.name = Self.menuSafeName(desktop.name)
         desktop.profilePath = "/var/saves"
         desktop.omitProfilePathCode = false
         // Icon={iconPath}/{code}/{iconFilename} — iconPath is .storage parent
@@ -314,6 +315,20 @@ actor GameSyncService {
         desktop.iconFilename = "\(game.code).png"
 
         return desktop.toData()
+    }
+
+    /// The stock menu (ReedPlayer) crashes with a C8 error when a title has an
+    /// apostrophe directly followed by a digit (e.g. "NHL '94"), so drop those
+    /// apostrophes. Backslashes are removed for the same Lua-quoting reason.
+    static func menuSafeName(_ name: String) -> String {
+        var result = ""
+        let chars = Array(name)
+        for (i, ch) in chars.enumerated() {
+            if ch == "\\" { continue }
+            if ch == "'" || ch == "\u{2019}", i + 1 < chars.count, chars[i + 1].isNumber { continue }
+            result.append(ch)
+        }
+        return result
     }
 
     // MARK: - Icon Assets
