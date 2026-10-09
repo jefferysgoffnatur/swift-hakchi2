@@ -92,6 +92,10 @@ actor GameSyncService {
         progress("Mounting games...", 0.82)
         _ = try? await shell.execute("mount --bind \"\(page0)\" \"\(gamePath)\"")
         _ = try? await shell.execute("ln -sf \"\(page0)\" /var/games")
+        // hakchi remembers the current menu page in /var/saves/hakchi/menu. We have just put page 000 on
+        // screen, so record that; otherwise a stale "001" makes the "More games..." folder do nothing
+        // (chmenu exits when asked for the page it believes is already showing).
+        _ = try? await shell.execute("mkdir -p /var/saves/hakchi && echo 000 > /var/saves/hakchi/menu")
 
         // Step 10: Restart console UI
         progress("Restarting console...", 0.92)
