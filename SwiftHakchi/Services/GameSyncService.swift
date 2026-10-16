@@ -335,6 +335,11 @@ actor GameSyncService {
         }
 
         desktop.name = Self.menuSafeName(desktop.name)
+        // The stock menu sorts by SortRawTitle; games added without one all tie and come out
+        // in arbitrary order, so derive it from the name as hakchi2-CE does.
+        if desktop.sortName.trimmingCharacters(in: .whitespaces).isEmpty {
+            desktop.sortName = Self.sortTitle(desktop.name)
+        }
         if let saveCount { desktop.saveCount = saveCount }
         desktop.profilePath = "/var/saves"
         desktop.omitProfilePathCode = false
@@ -344,6 +349,13 @@ actor GameSyncService {
         desktop.iconFilename = "\(game.code).png"
 
         return desktop.toData()
+    }
+
+    /// Sort key for the stock menu: lowercase, without a leading "the " (hakchi2-CE's rule).
+    static func sortTitle(_ name: String) -> String {
+        var key = menuSafeName(name).lowercased().trimmingCharacters(in: .whitespaces)
+        if key.hasPrefix("the ") { key = String(key.dropFirst(4)) }
+        return key
     }
 
     /// The stock menu (ReedPlayer) crashes with a C8 error when a title has an
